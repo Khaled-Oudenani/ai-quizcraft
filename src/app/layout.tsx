@@ -140,7 +140,7 @@ export const metadata: Metadata = {
   // ── Google Search Console Verification ───────────────
   // ← ضع الكود الذي تحصل عليه من Search Console هنا
   verification: {
-    google: "PASTE_YOUR_GOOGLE_VERIFICATION_CODE_HERE",
+    google: "-hYe8HhgEiUgRmmNmoq_vcF0PBDIUYebDDR1hjQ9uRo",
     // yandex: "...",
     // bing: "...",
   },
@@ -155,6 +155,10 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <meta
+          name="google-site-verification"
+          content="-hYe8HhgEiUgRmmNmoq_vcF0PBDIUYebDDR1hjQ9uRo"
+        />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
