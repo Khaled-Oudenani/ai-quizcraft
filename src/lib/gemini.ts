@@ -311,13 +311,232 @@
 
 // 333333
 
+// import type { GenerateQuizParams, Question } from "@/types";
+
+// // ─── Config ────────────────────────────────────────────────────────────────
+// const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+// const DEFAULT_MODEL = "anthropic/claude-3.5-haiku";
+
+// async function callOpenRouter(
+//   prompt: string,
+//   systemPrompt?: string,
+//   model = DEFAULT_MODEL,
+// ): Promise<string> {
+//   const messages: { role: string; content: string }[] = [];
+
+//   if (systemPrompt) {
+//     messages.push({ role: "system", content: systemPrompt });
+//   }
+//   messages.push({ role: "user", content: prompt });
+
+//   const response = await fetch(OPENROUTER_API_URL, {
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//       Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+//       "HTTP-Referer":
+//         process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+//       "X-Title": "Quiz Generator App",
+//     },
+//     body: JSON.stringify({
+//       model,
+//       messages,
+//       max_tokens: 4000,
+//       temperature: 0.7,
+//     }),
+//   });
+
+//   if (!response.ok) {
+//     const errorBody = await response.text();
+//     throw new Error(`OpenRouter API error ${response.status}: ${errorBody}`);
+//   }
+
+//   const data = await response.json();
+//   const text = data?.choices?.[0]?.message?.content;
+
+//   if (!text) {
+//     throw new Error("Empty response from OpenRouter");
+//   }
+
+//   return text;
+// }
+
+// // ─── Helper: clean + parse JSON ────────────────────────────────────────────
+// function parseJsonResponse<T>(text: string): T {
+//   const cleaned = text
+//     .replace(/```json\n?/g, "")
+//     .replace(/```\n?/g, "")
+//     .trim();
+
+//   try {
+//     return JSON.parse(cleaned) as T;
+//   } catch {
+//     throw new Error(
+//       `Failed to parse AI response as JSON.\nPreview: ${cleaned.substring(0, 300)}`,
+//     );
+//   }
+// }
+
+// // ─── Type للسؤال الخام من الـ AI ───────────────────────────────────────────
+// interface RawQuestion {
+//   type: string;
+//   question: string;
+//   options: string[] | null;
+//   correct_answer: string;
+//   explanation?: string;
+//   points?: number;
+//   order?: number;
+// }
+
+// // ─── 1. generateQuizFromContent ────────────────────────────────────────────
+// export async function generateQuizFromContent(
+//   params: GenerateQuizParams,
+// ): Promise<Omit<Question, "id" | "quiz_id" | "created_at">[]> {
+//   const questionTypesStr = params.questionTypes.join(", ");
+//   const difficultyInstructions: Record<string, string> = {
+//     easy: "Use simple, direct questions testing basic recall and understanding.",
+//     medium:
+//       "Use questions requiring comprehension and application of concepts.",
+//     hard: "Use complex questions requiring analysis, synthesis, and critical thinking.",
+//   };
+
+//   const systemPrompt = `You are an expert educational quiz generator.
+// Return ONLY a valid JSON array with no markdown, no explanation, no preamble.`;
+
+//   const prompt = `Generate exactly ${params.questionCount} quiz questions from the content below.
+
+// CONTENT:
+// ${params.content.substring(0, 8000)}
+
+// REQUIREMENTS:
+// - Difficulty: ${params.difficulty} - ${difficultyInstructions[params.difficulty]}
+// - Question types: ${questionTypesStr}
+// - Subject: ${params.subject || "General"}
+// - Language: ${params.language || "English"}
+// - Distribute question types evenly if multiple types are specified
+
+// OUTPUT FORMAT (JSON array only, no markdown):
+// [
+//   {
+//     "type": "multiple_choice",
+//     "question": "Question text?",
+//     "options": ["Option A", "Option B", "Option C", "Option D"],
+//     "correct_answer": "Option A",
+//     "explanation": "Why this answer is correct",
+//     "points": 1,
+//     "order": 1
+//   },
+//   {
+//     "type": "true_false",
+//     "question": "Statement to evaluate?",
+//     "options": ["True", "False"],
+//     "correct_answer": "True",
+//     "explanation": "Explanation",
+//     "points": 1,
+//     "order": 2
+//   },
+//   {
+//     "type": "short_answer",
+//     "question": "Question requiring a brief answer?",
+//     "options": null,
+//     "correct_answer": "Expected answer or key points",
+//     "explanation": "Explanation",
+//     "points": 2,
+//     "order": 3
+//   }
+// ]
+
+// Rules:
+// - multiple_choice: exactly 4 options
+// - true_false: options must be ["True", "False"]
+// - short_answer: options must be null
+// - correct_answer must exactly match one of the options (for mc and tf)
+// - Questions must be diverse and cover different parts of the content`;
+
+//   const text = await callOpenRouter(prompt, systemPrompt);
+//   const raw = parseJsonResponse<RawQuestion[]>(text);
+
+//   if (!Array.isArray(raw)) {
+//     throw new Error("AI response is not an array");
+//   }
+
+//   const validQuestions = raw.filter(
+//     (q) => q.type && q.question && q.correct_answer !== undefined,
+//   );
+
+//   if (validQuestions.length === 0) {
+//     throw new Error("No valid questions were generated");
+//   }
+
+//   return validQuestions.map((q, index) => ({
+//     type: q.type,
+//     question: q.question,
+//     options: q.options ?? null,
+//     correct_answer: q.correct_answer,
+//     explanation: q.explanation ?? "",
+//     points: q.points ?? 1,
+//     order: index + 1,
+//   }));
+// }
+
+// // ─── 2. suggestQuizTitle ───────────────────────────────────────────────────
+// export async function suggestQuizTitle(content: string): Promise<string> {
+//   const prompt = `Based on this educational content, suggest a concise and engaging quiz title (max 8 words).
+// Return ONLY the title text, nothing else.
+
+// Content preview:
+// ${content.substring(0, 500)}`;
+
+//   const title = await callOpenRouter(prompt);
+//   return title.trim().replace(/["']/g, "");
+// }
+
+// // ─── 3. improveQuestion ───────────────────────────────────────────────────
+// export async function improveQuestion(
+//   question: string,
+//   options: string[],
+//   correctAnswer: string,
+// ): Promise<{
+//   question: string;
+//   options: string[];
+//   correct_answer: string;
+//   explanation: string;
+// }> {
+//   const systemPrompt = `You are an expert quiz editor. Return ONLY valid JSON, no markdown.`;
+
+//   const prompt = `Improve this quiz question to be clearer and more educational.
+
+// Original question: ${question}
+// Options: ${options.join(", ")}
+// Correct answer: ${correctAnswer}
+
+// Return this exact JSON structure:
+// {
+//   "question": "improved question text",
+//   "options": ["option1", "option2", "option3", "option4"],
+//   "correct_answer": "must match one of the options exactly",
+//   "explanation": "why this question is educationally valuable"
+// }`;
+
+//   const text = await callOpenRouter(prompt, systemPrompt);
+//   return parseJsonResponse(text);
+// }
+
+// 444444444
+
 import type { GenerateQuizParams, Question } from "@/types";
 
 // ─── Config ────────────────────────────────────────────────────────────────
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
-
 const DEFAULT_MODEL = "anthropic/claude-3.5-haiku";
 
+// ─── أنواع معتمدة ─────────────────────────────────────────────────────────
+const allowedTypes = ["multiple_choice", "true_false", "short_answer"] as const;
+
+type QuestionType = (typeof allowedTypes)[number];
+
+// ─── OpenRouter call ───────────────────────────────────────────────────────
 async function callOpenRouter(
   prompt: string,
   systemPrompt?: string,
@@ -362,7 +581,7 @@ async function callOpenRouter(
   return text;
 }
 
-// ─── Helper: clean + parse JSON ────────────────────────────────────────────
+// ─── JSON parser ───────────────────────────────────────────────────────────
 function parseJsonResponse<T>(text: string): T {
   const cleaned = text
     .replace(/```json\n?/g, "")
@@ -378,7 +597,7 @@ function parseJsonResponse<T>(text: string): T {
   }
 }
 
-// ─── Type للسؤال الخام من الـ AI ───────────────────────────────────────────
+// ─── Raw type من AI ────────────────────────────────────────────────────────
 interface RawQuestion {
   type: string;
   question: string;
@@ -389,11 +608,40 @@ interface RawQuestion {
   order?: number;
 }
 
+// ─── Validator ─────────────────────────────────────────────────────────────
+function isValidQuestion(
+  q: RawQuestion,
+): q is RawQuestion & { type: QuestionType } {
+  if (!allowedTypes.includes(q.type as QuestionType)) return false;
+  if (!q.question || !q.correct_answer) return false;
+
+  // تحقق حسب النوع
+  if (q.type === "multiple_choice") {
+    return Array.isArray(q.options) && q.options.length === 4;
+  }
+
+  if (q.type === "true_false") {
+    return (
+      Array.isArray(q.options) &&
+      q.options.length === 2 &&
+      q.options.includes("True") &&
+      q.options.includes("False")
+    );
+  }
+
+  if (q.type === "short_answer") {
+    return q.options === null;
+  }
+
+  return false;
+}
+
 // ─── 1. generateQuizFromContent ────────────────────────────────────────────
 export async function generateQuizFromContent(
   params: GenerateQuizParams,
 ): Promise<Omit<Question, "id" | "quiz_id" | "created_at">[]> {
   const questionTypesStr = params.questionTypes.join(", ");
+
   const difficultyInstructions: Record<string, string> = {
     easy: "Use simple, direct questions testing basic recall and understanding.",
     medium:
@@ -414,45 +662,15 @@ REQUIREMENTS:
 - Question types: ${questionTypesStr}
 - Subject: ${params.subject || "General"}
 - Language: ${params.language || "English"}
-- Distribute question types evenly if multiple types are specified
 
-OUTPUT FORMAT (JSON array only, no markdown):
-[
-  {
-    "type": "multiple_choice",
-    "question": "Question text?",
-    "options": ["Option A", "Option B", "Option C", "Option D"],
-    "correct_answer": "Option A",
-    "explanation": "Why this answer is correct",
-    "points": 1,
-    "order": 1
-  },
-  {
-    "type": "true_false",
-    "question": "Statement to evaluate?",
-    "options": ["True", "False"],
-    "correct_answer": "True",
-    "explanation": "Explanation",
-    "points": 1,
-    "order": 2
-  },
-  {
-    "type": "short_answer",
-    "question": "Question requiring a brief answer?",
-    "options": null,
-    "correct_answer": "Expected answer or key points",
-    "explanation": "Explanation",
-    "points": 2,
-    "order": 3
-  }
-]
+OUTPUT FORMAT (JSON array only):
+[ ... ]
 
 Rules:
 - multiple_choice: exactly 4 options
 - true_false: options must be ["True", "False"]
 - short_answer: options must be null
-- correct_answer must exactly match one of the options (for mc and tf)
-- Questions must be diverse and cover different parts of the content`;
+- correct_answer must match options (for mc & tf)`;
 
   const text = await callOpenRouter(prompt, systemPrompt);
   const raw = parseJsonResponse<RawQuestion[]>(text);
@@ -461,18 +679,18 @@ Rules:
     throw new Error("AI response is not an array");
   }
 
-  const validQuestions = raw.filter(
-    (q) => q.type && q.question && q.correct_answer !== undefined,
-  );
+  // ✅ فلترة + حماية
+  const validQuestions = raw.filter(isValidQuestion);
 
   if (validQuestions.length === 0) {
     throw new Error("No valid questions were generated");
   }
 
+  // ✅ الآن TypeScript راضي 100%
   return validQuestions.map((q, index) => ({
-    type: q.type,
+    type: q.type as QuestionType, // ✅ FIX هنا
     question: q.question,
-    options: q.options ?? null,
+    options: q.options ?? undefined,
     correct_answer: q.correct_answer,
     explanation: q.explanation ?? "",
     points: q.points ?? 1,
@@ -482,11 +700,8 @@ Rules:
 
 // ─── 2. suggestQuizTitle ───────────────────────────────────────────────────
 export async function suggestQuizTitle(content: string): Promise<string> {
-  const prompt = `Based on this educational content, suggest a concise and engaging quiz title (max 8 words).
-Return ONLY the title text, nothing else.
-
-Content preview:
-${content.substring(0, 500)}`;
+  const prompt = `Based on this educational content, suggest a concise quiz title (max 8 words).
+Return ONLY the title.`;
 
   const title = await callOpenRouter(prompt);
   return title.trim().replace(/["']/g, "");
@@ -503,20 +718,20 @@ export async function improveQuestion(
   correct_answer: string;
   explanation: string;
 }> {
-  const systemPrompt = `You are an expert quiz editor. Return ONLY valid JSON, no markdown.`;
+  const systemPrompt = `You are an expert quiz editor. Return ONLY valid JSON.`;
 
-  const prompt = `Improve this quiz question to be clearer and more educational.
+  const prompt = `Improve this quiz question:
 
-Original question: ${question}
+Question: ${question}
 Options: ${options.join(", ")}
 Correct answer: ${correctAnswer}
 
-Return this exact JSON structure:
+Return JSON:
 {
-  "question": "improved question text",
-  "options": ["option1", "option2", "option3", "option4"],
-  "correct_answer": "must match one of the options exactly",
-  "explanation": "why this question is educationally valuable"
+  "question": "...",
+  "options": ["..."],
+  "correct_answer": "...",
+  "explanation": "..."
 }`;
 
   const text = await callOpenRouter(prompt, systemPrompt);
