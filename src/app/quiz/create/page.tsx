@@ -598,7 +598,7 @@ export default function QuizCreatePage() {
     if (!file) return;
     setFileName(file.name);
     const text = await file.text();
-    setContent(text.substring(0, 15000));
+    setContent(text.substring(0, 8000));
     setStep("configure");
   }, []);
 

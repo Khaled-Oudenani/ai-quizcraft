@@ -197,7 +197,7 @@ export async function generateQuizFromContent(
 Generate exactly ${params.questionCount} quiz questions from the content below.
 
 CONTENT:
-${params.content.substring(0, 8000)}
+${params.content.substring(0, 4000)}
 
 REQUIREMENTS:
 - Difficulty: ${params.difficulty} — ${difficultyInstructions[params.difficulty]}
