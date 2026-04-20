@@ -125,7 +125,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { generateQuizFromContent } from "@/lib/gemini"; // نفس الملف — فقط تغير محتواه
+import { generateQuizFromContent } from "@/lib/gemini";
 import { v4 as uuidv4 } from "uuid";
 
 export async function POST(request: NextRequest) {
@@ -151,6 +151,13 @@ export async function POST(request: NextRequest) {
       passMark,
     } = body;
 
+    // ✅ Debug: نرى ما يصل من الـ frontend
+    console.log("=== CONTENT DEBUG ===");
+    console.log("Content type:", typeof content);
+    console.log("Content length:", content?.length);
+    console.log("Content preview:", content?.substring(0, 500));
+    console.log("====================");
+
     if (!content || content.trim().length < 50) {
       return NextResponse.json(
         { error: "Content is too short." },
@@ -164,7 +171,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // توليد الأسئلة عبر OpenRouter
+    // توليد الأسئلة
     const generatedQuestions = await generateQuizFromContent({
       content,
       questionCount: Math.min(questionCount || 10, 30),
@@ -173,6 +180,15 @@ export async function POST(request: NextRequest) {
       subject,
       language: "English",
     });
+
+    // ✅ Debug: نرى ما أرجعه الـ AI
+    console.log("=== GENERATED QUESTIONS DEBUG ===");
+    console.log("Questions count:", generatedQuestions.length);
+    console.log(
+      "First question:",
+      JSON.stringify(generatedQuestions[0], null, 2),
+    );
+    console.log("=================================");
 
     // حفظ الكويز في Supabase
     const quizId = uuidv4();

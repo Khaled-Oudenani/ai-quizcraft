@@ -192,6 +192,7 @@ import { formatRelativeTime, getDifficultyBg } from "@/lib/utils";
 import type { Quiz } from "@/types";
 import DeleteQuizButton from "@/components/ui/DeleteQuizButton";
 
+export const revalidate = 30;
 export default async function QuizzesPage() {
   const supabase = await createClient();
   const {
