@@ -128,7 +128,6 @@ import { createClient } from "@/lib/supabase/server";
 import { generateQuizFromContent } from "@/lib/gemini"; // نفس الملف — فقط تغير محتواه
 import { v4 as uuidv4 } from "uuid";
 
-export const maxDuration = 60; // زيادة المهلة إلى 60 ثانية
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
