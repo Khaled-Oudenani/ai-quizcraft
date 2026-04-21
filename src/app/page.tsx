@@ -1822,7 +1822,7 @@ export default function LandingPage() {
                 style={{ fontFamily: "Manrope, sans-serif" }}
               >
                 <span className="w-2 h-2 rounded-full bg-[#45dfa4] animate-pulse" />
-                AI Model 2.0 — Now Live
+                AI Model — Now Live
               </div>
               <h1
                 className="text-[2.2rem] sm:text-[3rem] lg:text-[3.5rem] leading-[1.1] tracking-[-0.02em] mb-5 text-gradient"
@@ -2314,7 +2314,7 @@ export default function LandingPage() {
             className="text-xs text-[#424753] order-last sm:order-none"
             style={{ fontFamily: "Manrope, sans-serif" }}
           >
-            © 2025 QuizCraft AI. All rights reserved.
+            © 2026 QuizCraft AI. All rights reserved.
           </p>
           <div className="flex gap-5">
             {["Privacy", "Terms", "Contact"].map((link) => (
