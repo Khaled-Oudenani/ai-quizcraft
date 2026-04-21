@@ -1686,7 +1686,7 @@ export default function LandingPage() {
         "Dedicated support",
       ],
       cta: "Contact Sales",
-      href: "mailto:sales@quizcraft.ai",
+      href: "mailto:khaoud1234@gmail.com",
     },
   ];
 
