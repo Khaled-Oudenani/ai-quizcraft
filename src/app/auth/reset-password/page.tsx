@@ -12,19 +12,45 @@ export default function ResetPasswordPage() {
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [ready, setReady] = useState(false); // الرابط تحقق منه
+  const [ready, setReady] = useState(false);
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    // Supabase يبعث هذا الـ event لما المستخدم يجي من رابط التأكيد
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setReady(true);
+    // Supabase يبعث التوكن في الـ URL hash: #access_token=...&type=recovery
+    // نقرأه يدوياً ونعطيه لـ Supabase
+    const hash = window.location.hash;
+
+    if (hash && hash.includes("type=recovery")) {
+      const params = new URLSearchParams(hash.substring(1)); // إزالة الـ #
+      const access_token = params.get("access_token");
+      const refresh_token = params.get("refresh_token");
+
+      if (access_token && refresh_token) {
+        supabase.auth
+          .setSession({ access_token, refresh_token })
+          .then(({ error }) => {
+            if (error) {
+              setError(
+                "Invalid or expired reset link. Please request a new one.",
+              );
+            } else {
+              setReady(true);
+            }
+          });
+      } else {
+        setError("Invalid reset link. Please request a new one.");
       }
-    });
-    return () => subscription.unsubscribe();
+    } else {
+      // fallback: استنّى الـ event
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY") {
+          setReady(true);
+        }
+      });
+      return () => subscription.unsubscribe();
+    }
   }, [supabase]);
 
   const handleReset = async (e: React.FormEvent) => {
@@ -57,7 +83,6 @@ export default function ResetPasswordPage() {
       className="min-h-screen flex items-center justify-center px-4 neural-mesh"
       style={{ background: "#0f131c" }}
     >
-      {/* Background Glow */}
       <div className="fixed top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[#acc7ff]/5 blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
@@ -101,18 +126,30 @@ export default function ResetPasswordPage() {
               "0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(79,142,247,0.05)",
           }}
         >
-          {/* ── Loading / Invalid link ── */}
-          {!ready && !done && (
-            <div className="flex flex-col items-center gap-4 py-6">
-              <span className="material-symbols-outlined text-[#acc7ff] text-4xl animate-spin">
-                refresh
-              </span>
+          {/* ── Error: رابط منتهي أو غلط ── */}
+          {error && !ready && (
+            <div className="flex flex-col items-center gap-5 py-2">
+              <div
+                className="w-16 h-16 rounded-2xl bg-[#ffb4ab]/10 flex items-center justify-center"
+                style={{ border: "1px solid #ffb4ab30" }}
+              >
+                <span className="material-symbols-outlined text-[#ffb4ab] text-3xl">
+                  link_off
+                </span>
+              </div>
               <p
-                className="text-[#8c909e] text-sm"
+                className="text-[#ffb4ab] text-sm text-center"
                 style={{ fontFamily: "Manrope, sans-serif" }}
               >
-                Verifying your reset link…
+                {error}
               </p>
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm text-[#acc7ff] hover:text-[#dfe2ee] transition-colors"
+                style={{ fontFamily: "Manrope, sans-serif" }}
+              >
+                Request a new reset link →
+              </Link>
             </div>
           )}
 
@@ -150,7 +187,6 @@ export default function ResetPasswordPage() {
               )}
 
               <form onSubmit={handleReset} className="flex flex-col gap-5">
-                {/* New Password */}
                 <div>
                   <label
                     className="block text-xs font-bold text-[#c2c6d5] mb-2 uppercase tracking-wider"
@@ -184,7 +220,6 @@ export default function ResetPasswordPage() {
                   />
                 </div>
 
-                {/* Confirm Password */}
                 <div>
                   <label
                     className="block text-xs font-bold text-[#c2c6d5] mb-2 uppercase tracking-wider"
@@ -216,7 +251,6 @@ export default function ResetPasswordPage() {
                       e.target.style.background = "#0a0e16";
                     }}
                   />
-                  {/* Match indicator */}
                   {confirm.length > 0 && (
                     <p
                       className={`mt-1.5 text-xs ${password === confirm ? "text-[#b5e8a0]" : "text-[#ffb4ab]"}`}
