@@ -18,7 +18,10 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
     if (error) {
       setError(error.message);
@@ -42,7 +45,9 @@ export default function LoginPage() {
         <div className="text-center mb-10">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
             <div className="w-10 h-10 rounded-xl bg-[#acc7ff]/20 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[#acc7ff]">psychology</span>
+              <span className="material-symbols-outlined text-[#acc7ff]">
+                psychology
+              </span>
             </div>
             <span
               className="text-xl font-black tracking-tight text-[#acc7ff]"
@@ -57,7 +62,10 @@ export default function LoginPage() {
           >
             Welcome back
           </h1>
-          <p className="text-[#8c909e] mt-2 text-sm" style={{ fontFamily: "Manrope, sans-serif" }}>
+          <p
+            className="text-[#8c909e] mt-2 text-sm"
+            style={{ fontFamily: "Manrope, sans-serif" }}
+          >
             Sign in to your account to continue
           </p>
         </div>
@@ -67,18 +75,25 @@ export default function LoginPage() {
           className="rounded-2xl p-8 border border-[#424753]/30"
           style={{
             background: "#181c24",
-            boxShadow: "0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(79,142,247,0.05)",
+            boxShadow:
+              "0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(79,142,247,0.05)",
           }}
         >
           {error && (
-            <div className="mb-6 p-3 rounded-xl bg-[#ffb4ab]/10 border border-[#ffb4ab]/20 text-[#ffb4ab] text-sm" style={{ fontFamily: "Manrope, sans-serif" }}>
+            <div
+              className="mb-6 p-3 rounded-xl bg-[#ffb4ab]/10 border border-[#ffb4ab]/20 text-[#ffb4ab] text-sm"
+              style={{ fontFamily: "Manrope, sans-serif" }}
+            >
               {error}
             </div>
           )}
 
           <form onSubmit={handleLogin} className="flex flex-col gap-5">
             <div>
-              <label className="block text-xs font-bold text-[#c2c6d5] mb-2 uppercase tracking-wider" style={{ fontFamily: "Manrope, sans-serif" }}>
+              <label
+                className="block text-xs font-bold text-[#c2c6d5] mb-2 uppercase tracking-wider"
+                style={{ fontFamily: "Manrope, sans-serif" }}
+              >
                 Email address
               </label>
               <input
@@ -95,7 +110,8 @@ export default function LoginPage() {
                 }}
                 onFocus={(e) => {
                   e.target.style.borderColor = "#acc7ff";
-                  e.target.style.boxShadow = "0 0 0 1px #acc7ff, 0 0 10px rgba(172,199,255,0.1)";
+                  e.target.style.boxShadow =
+                    "0 0 0 1px #acc7ff, 0 0 10px rgba(172,199,255,0.1)";
                   e.target.style.background = "#1c2028";
                 }}
                 onBlur={(e) => {
@@ -108,12 +124,22 @@ export default function LoginPage() {
 
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="block text-xs font-bold text-[#c2c6d5] uppercase tracking-wider" style={{ fontFamily: "Manrope, sans-serif" }}>
+                <label
+                  className="block text-xs font-bold text-[#c2c6d5] uppercase tracking-wider"
+                  style={{ fontFamily: "Manrope, sans-serif" }}
+                >
                   Password
                 </label>
-                <a href="#" className="text-xs text-[#acc7ff] hover:text-[#dfe2ee] transition-colors" style={{ fontFamily: "Manrope, sans-serif" }}>
+                {/* <a href="#" className="text-xs text-[#acc7ff] hover:text-[#dfe2ee] transition-colors" style={{ fontFamily: "Manrope, sans-serif" }}>
                   Forgot password?
-                </a>
+                </a> */}
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-xs text-[#acc7ff] hover:text-[#dfe2ee] transition-colors"
+                  style={{ fontFamily: "Manrope, sans-serif" }}
+                >
+                  Forgot password?
+                </Link>
               </div>
               <input
                 type="password"
@@ -129,7 +155,8 @@ export default function LoginPage() {
                 }}
                 onFocus={(e) => {
                   e.target.style.borderColor = "#acc7ff";
-                  e.target.style.boxShadow = "0 0 0 1px #acc7ff, 0 0 10px rgba(172,199,255,0.1)";
+                  e.target.style.boxShadow =
+                    "0 0 0 1px #acc7ff, 0 0 10px rgba(172,199,255,0.1)";
                   e.target.style.background = "#1c2028";
                 }}
                 onBlur={(e) => {
@@ -152,7 +179,9 @@ export default function LoginPage() {
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <span className="material-symbols-outlined text-sm animate-spin">refresh</span>
+                  <span className="material-symbols-outlined text-sm animate-spin">
+                    refresh
+                  </span>
                   Signing in…
                 </span>
               ) : (
@@ -162,9 +191,15 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center mt-6 text-sm text-[#8c909e]" style={{ fontFamily: "Manrope, sans-serif" }}>
+        <p
+          className="text-center mt-6 text-sm text-[#8c909e]"
+          style={{ fontFamily: "Manrope, sans-serif" }}
+        >
           Don&apos;t have an account?{" "}
-          <Link href="/auth/register" className="text-[#acc7ff] hover:text-[#dfe2ee] font-semibold transition-colors">
+          <Link
+            href="/auth/register"
+            className="text-[#acc7ff] hover:text-[#dfe2ee] font-semibold transition-colors"
+          >
             Sign up free
           </Link>
         </p>
