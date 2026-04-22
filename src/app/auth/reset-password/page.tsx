@@ -17,52 +17,25 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const hash = window.location.hash;
 
-    // ── 1. رابط منتهي الصلاحية أو خطأ من Supabase ──
-    const errorCode = searchParams.get("error_code");
-    const errorType = searchParams.get("error");
-    if (errorType === "access_denied" || errorCode === "otp_expired") {
+    // ── رابط منتهي الصلاحية أو خطأ (يجي من Supabase مباشرة) ──
+    if (
+      searchParams.get("error") === "access_denied" ||
+      searchParams.get("error_code") === "otp_expired"
+    ) {
       setError("expired");
       return;
     }
 
-    // ── 2. PKCE flow (Supabase v2 الجديد) → ?code=xxx ──
-    const code = searchParams.get("code");
-    if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-        if (error) setError("invalid");
-        else setReady(true);
-      });
-      return;
-    }
-
-    // ── 3. Implicit flow (القديم) → #access_token=xxx&type=recovery ──
-    if (hash && hash.includes("type=recovery")) {
-      const params = new URLSearchParams(hash.substring(1));
-      const access_token = params.get("access_token");
-      const refresh_token = params.get("refresh_token");
-
-      if (access_token && refresh_token) {
-        supabase.auth
-          .setSession({ access_token, refresh_token })
-          .then(({ error }) => {
-            if (error) setError("invalid");
-            else setReady(true);
-          });
+    // ── الـ session جاهزة من callback/route.ts ──
+    // ما نحتاج exchangeCodeForSession هنا، الـ callback عملها
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setReady(true);
       } else {
         setError("invalid");
       }
-      return;
-    }
-
-    // ── 4. Fallback: استنّى الـ event ──
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setReady(true);
     });
-    return () => subscription.unsubscribe();
   }, [supabase]);
 
   const handleReset = async (e: React.FormEvent) => {
@@ -90,7 +63,6 @@ export default function ResetPasswordPage() {
     setLoading(false);
   };
 
-  // ── حالة: رابط منتهي الصلاحية ──
   const isExpired = error === "expired";
   const isInvalid = error === "invalid";
   const isLinkError = isExpired || isInvalid;
@@ -186,7 +158,7 @@ export default function ResetPasswordPage() {
             </div>
           )}
 
-          {/* ── انتظار التحقق (لا يوجد hash ولا code بعد) ── */}
+          {/* ── انتظار التحقق ── */}
           {!isLinkError && !ready && !done && (
             <div className="flex flex-col items-center gap-4 py-6">
               <span className="material-symbols-outlined text-[#acc7ff] text-4xl animate-spin">
@@ -303,11 +275,7 @@ export default function ResetPasswordPage() {
                   />
                   {confirm.length > 0 && (
                     <p
-                      className={`mt-1.5 text-xs ${
-                        password === confirm
-                          ? "text-[#b5e8a0]"
-                          : "text-[#ffb4ab]"
-                      }`}
+                      className={`mt-1.5 text-xs ${password === confirm ? "text-[#b5e8a0]" : "text-[#ffb4ab]"}`}
                       style={{ fontFamily: "Manrope, sans-serif" }}
                     >
                       {password === confirm
